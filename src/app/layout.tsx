@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,12 +38,78 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tr from-orange-500 via-purple-500 to-indigo-400 bg-repeat-space`}
+        >
+          <div className="flex justify-center items-center">
+            <SignedOut>
+              <div className="flex justify-center items-center bg-green-500 rounded-full p-4 m-5 text-white w-1/5 font-bold hover:bg-green-400">
+                <SignInButton />
+              </div>
+              <div className="flex justify-center items-center  bg-green-500 rounded-full p-4 m-5 text-white w-1/5 font-bold hover:bg-green-400">
+                <SignUpButton />
+              </div>
+            </SignedOut>
+          </div>
+
+          <SignedIn>
+            <div className="p-1  grid grid-cols-3 text-pretty font-bold">
+              <UserButton showName={true} appearance={{}} />
+              <p className="flex items-start text-3xl  text-white col-span-2">
+                Realtime collaborative note taking
+              </p>
+            </div>
+            <div className="flex h-screen w-screen m-1 overflow-y-scroll">
+              <ResizablePanelGroup
+                direction="horizontal"
+                className="rounded-lg border-2 border-gray-400 bg-gradient-to-tr from-orange-500 via-purple-500 to-indigo-400 m-2 overflow-y-scroll"
+              >
+                <ResizablePanel defaultSize={20}>
+                  <div className="grid grid-rows-3 items-center justify-center p-5 font-semibold text-white">
+                    <a
+                      href="/notes/create"
+                      className="flex w-full items-center justify-center bg-violet-600 border-2 rounded-xl m-2 p-2 px-3 shadow-sm"
+                    >
+                      Create Note
+                    </a>
+                    <a
+                      href="/notes/view"
+                      className="flex w-full items-center justify-center bg-violet-600 border-2 rounded-xl m-2 p-2 px-3 shadow-sm"
+                    >
+                      View Notes
+                    </a>
+                    <a
+                      href="/notes/edit"
+                      className="flex w-full items-center justify-center bg-violet-600 border-2 rounded-xl m-2 p-2 px-3 shadow-sm"
+                    >
+                      Edit Notes
+                    </a>
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle className="border-grey-600 border-2" />
+                <ResizablePanel
+                  defaultSize={80}
+                  className="overflow-y-scroll overflow-x-scroll text-white"
+                >
+                  <ResizablePanelGroup
+                    direction="vertical"
+                    className="overflow-y-scroll"
+                  >
+                    <ResizablePanel defaultSize={100}>
+                      <div className="flex items-left justify-between p-5">
+                        {children}
+                      </div>
+                    </ResizablePanel>
+                  </ResizablePanelGroup>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </div>
+            <Toaster />
+          </SignedIn>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
