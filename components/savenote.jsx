@@ -23,7 +23,7 @@ export async function createNote(data) {
       title: data.title,
       content: data.note,
       html: data.content,
-      published: true,
+      published: data.publish,
       authorId: data.email,
       description: data.desc,
     },

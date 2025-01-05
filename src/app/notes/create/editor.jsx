@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Editor from "@/components/MyEditor";
 import Quill from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { createNote } from "../../../../components/savenote";
 import { useSession } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const Delta = Quill.import("delta");
 
@@ -17,6 +18,7 @@ const PlivoEditor = () => {
   const [, setLastChange] = useState();
   const [value, setContent] = useState("");
   const [description, setDescription] = useState("");
+  const [publish, setPublish] = useState(false);
   const session = useSession();
   const { toast } = useToast();
 
@@ -26,12 +28,14 @@ const PlivoEditor = () => {
   async function saveNote() {
     try {
       console.log(quillRef.current.getSemanticHTML());
+      console.log(publish);
       const notesrequest = {
         id: session.session?.user.username,
         note: JSON.stringify(quillRef.current.getContents()),
         email: session.session?.user.emailAddresses[0].emailAddress,
         title: value,
         desc: description,
+        publish: publish,
         content: quillRef.current.getSemanticHTML(),
       };
       const response = await createNote(notesrequest);
@@ -95,6 +99,18 @@ const PlivoEditor = () => {
           theme="snow"
           placeholder="Type your notes..."
         />
+      </div>
+
+      <div className="m-2">
+        <Checkbox
+          id="publish"
+          value={publish}
+          onCheckedChange={(e) => {
+            setPublish(e);
+          }}
+          className="border-2"
+        />
+        <Label htmlFor="publish"> Publish</Label>
       </div>
 
       <div className="flex m-2">

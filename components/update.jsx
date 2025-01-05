@@ -17,9 +17,10 @@ export async function updateNote(data) {
       data: {
         content: data.note,
         html: data.content,
+        published: data.published,
       },
     });
-    console.log("Note created:", note);
+    console.log("Note Updated:", note);
     return note;
   } else {
     return null;

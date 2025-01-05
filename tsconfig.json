@@ -28,10 +28,12 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/RichEditor.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "src/app/notes/create/editor.jsx"
-  ],
+    "src/app/notes/create/editor.jsx",
+    "src/app/notes/create/page.tsx",
+    "src/app/notes/edit/page.tsx",
+    "src/app/notes/view/page.tsx"
+, "src/app/notes/edit/editpage.jsx"  ],
   "exclude": ["node_modules"]
 }
