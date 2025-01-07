@@ -1,22 +1,23 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-
 ## Getting Started
 
-# Setup 
+### Setup
 
 - Create a clerk account and project
+
   - [Clerk Setup ](https://clerk.com/docs/quickstarts/setup-clerk)
   - [Clerk Nextjs Docs](https://clerk.com/docs/quickstarts/nextjs)
+
 - Setup Postgres
+
   - [Run postgres in Local](https://www.postgresql.org/download/macosx/)
   - [Run postgres as docker](https://www.docker.com/blog/how-to-use-the-postgres-docker-official-image/)
+
 - Prisma Setup
+
   - [Prisma for Postgres](https://www.prisma.io/docs/orm/overview/databases/postgresql)
   - [Prisma postgres Next App](https://github.com/prisma/prisma-examples/tree/latest/orm/nextjs-api-routes)
-
-
-
 
 First, run the development server:
 

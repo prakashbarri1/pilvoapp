@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Editor from "@/components/MyEditor";
 import Quill from "quill";
 import "react-quill/dist/quill.snow.css";
@@ -6,7 +6,6 @@ import "react-quill/dist/quill.core.css";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { createNote } from "../../../../components/savenote";
 import { useSession } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,8 +37,18 @@ const PlivoEditor = () => {
         publish: publish,
         content: quillRef.current.getSemanticHTML(),
       };
-      const response = await createNote(notesrequest);
-      console.log(response);
+      const response = await fetch("/api/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(notesrequest),
+      });
+
+      const data = await response.json();
+      console.log(data);
+      // const response = await createNote(notesrequest);
+      // console.log(response);
       setContent("");
       setDescription("");
       quillRef.current.setText("");
