@@ -21,7 +21,7 @@ const Editor = forwardRef(
     useEffect(() => {
       const container = containerRef.current;
       const editorContainer = container.appendChild(
-        container.ownerDocument.createElement("div"),
+        container.ownerDocument.createElement("div")
       );
       const quill = new Quill(editorContainer, {
         theme: "snow",
@@ -47,8 +47,8 @@ const Editor = forwardRef(
       };
     }, [ref]);
 
-    return <div ref={containerRef}></div>;
-  },
+    return <div ref={containerRef} className="border-2 rounded-md"></div>;
+  }
 );
 
 Editor.displayName = "Editor";

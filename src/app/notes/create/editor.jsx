@@ -65,9 +65,11 @@ const PlivoEditor = () => {
   }
 
   return (
-    <div>
+    <div className="text-gray-700">
       <div className="mx-2">
-        <Label htmlFor="title">Title</Label>
+        <Label htmlFor="title" className="font-semibold">
+          Title
+        </Label>
         <Input
           id="title"
           type="text"
@@ -82,7 +84,9 @@ const PlivoEditor = () => {
       </div>
 
       <div className="m-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="font-semibold">
+          Description
+        </Label>
         <Input
           id="description"
           type="text"
@@ -96,7 +100,9 @@ const PlivoEditor = () => {
       </div>
 
       <div className="m-2">
-        <Label htmlFor="editor">Content</Label>
+        <Label htmlFor="editor" className="font-semibold">
+          Content
+        </Label>
         <Editor
           id="editor"
           className="flex border-indigo-400 rounded-xl border-2 text-indigo-400"
@@ -119,7 +125,10 @@ const PlivoEditor = () => {
           }}
           className="border-2"
         />
-        <Label htmlFor="publish"> Publish</Label>
+        <Label htmlFor="publish" className="font-semibold">
+          {" "}
+          Publish
+        </Label>
       </div>
 
       <div className="flex m-2">

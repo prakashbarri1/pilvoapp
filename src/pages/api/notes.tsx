@@ -31,6 +31,6 @@ export default async function handler(
     }
   } catch (error) {
     console.error(error);
-    response.status(500).json({ message: "Internal Server Error" });
+    response.redirect("/");
   }
 }

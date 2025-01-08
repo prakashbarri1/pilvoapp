@@ -41,7 +41,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tr from-orange-500 via-purple-500 to-indigo-400 bg-repeat-space`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tr from-teal-300 via-orange-300 to-amber-500 bg-repeat-space`}
         >
           <div className="flex justify-center items-center">
             <SignedOut>
@@ -64,7 +64,7 @@ export default function RootLayout({
             <div className="flex h-screen w-screen m-1 overflow-y-scroll">
               <ResizablePanelGroup
                 direction="horizontal"
-                className="rounded-lg border-2 border-gray-400 bg-gradient-to-tr from-orange-500 via-purple-500 to-indigo-400 m-2 overflow-y-scroll"
+                className="rounded-lg border-2 border-gray-400 bg-gradient-to-tr from-teal-300 via-orange-300 to-amber-500 m-2 overflow-y-scroll"
               >
                 <ResizablePanel defaultSize={20}>
                   <div className="grid grid-rows-3 items-center justify-center p-5 font-semibold text-white">
