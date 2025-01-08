@@ -6,7 +6,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { getNotes } from "../../../../components/notes";
+
 import { useSession } from "@clerk/nextjs";
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,27 +19,47 @@ export default function ViewNotes() {
   const [viewdata, setViewData] = useState(Array<React.ReactNode>());
   const [othernotes, setOthersNotes] = useState(Array<React.ReactNode>());
   async function getData() {
-    const notes = await getNotes(
-      {
+    const notesRequest = {
+      data: {
         id:
           session.session?.user.emailAddresses[0].emailAddress ||
           localStorage.getItem("email"),
       },
-      false
-    );
-    return notes;
+      published: false,
+    };
+
+    const response = await fetch("/api/notes", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+      body: JSON.stringify(notesRequest),
+    });
+    const data = await response.json();
+    return data;
   }
 
   async function getOthersData() {
-    const notes = await getNotes(
-      {
+    const notesRequest = {
+      data: {
         id:
           session.session?.user.emailAddresses[0].emailAddress ||
           localStorage.getItem("email"),
       },
-      true
-    );
-    return notes;
+      published: true,
+    };
+
+    const response = await fetch("/api/notes", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+      body: JSON.stringify(notesRequest),
+    });
+    const data = await response.json();
+    return data;
   }
   const myData = Array<React.ReactNode>();
   const othersData = Array<React.ReactNode>();

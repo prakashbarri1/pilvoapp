@@ -20,9 +20,6 @@ import {
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import { getNotes } from "../../../../components/notes";
-import { deleteNote } from "../../../../components/delete";
-import { updateNote } from "../../../../components/update";
 import { useSession } from "@clerk/nextjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -52,27 +49,47 @@ const EditNote = () => {
   const othersData = Array();
 
   async function getData() {
-    const notes = await getNotes(
-      {
+    const notesRequest = {
+      data: {
         id:
           session.session?.user.emailAddresses[0].emailAddress ||
           localStorage.getItem("email"),
       },
-      false
-    );
-    return notes;
+      published: false,
+    };
+
+    const response = await fetch("/api/notes", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+      body: JSON.stringify(notesRequest),
+    });
+    const data = await response.json();
+    return data;
   }
 
   async function getOthersData() {
-    const notes = await getNotes(
-      {
+    const notesRequest = {
+      data: {
         id:
           session.session?.user.emailAddresses[0].emailAddress ||
           localStorage.getItem("email"),
       },
-      true
-    );
-    return notes;
+      published: true,
+    };
+
+    const response = await fetch("/api/notes", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store",
+      },
+      body: JSON.stringify(notesRequest),
+    });
+    const data = await response.json();
+    return data;
   }
 
   useEffect(() => {
@@ -90,15 +107,30 @@ const EditNote = () => {
       content: quillRef.current.getSemanticHTML(),
       published: publish,
     };
-    const updatedNote = await updateNote(updateRecord);
-    return updatedNote;
+    const response = await fetch("/api/update", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updateRecord),
+    });
+    const data = await response.json();
+    return data;
   }
 
   async function deleteData(nid) {
-    const notes = await deleteNote({
+    const deleteRequest = {
       id: nid,
+    };
+    const response = await fetch("/api/delete", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(deleteRequest),
     });
-    return notes;
+    const data = await response.json();
+    return data;
   }
 
   return (
@@ -109,7 +141,7 @@ const EditNote = () => {
           onClick={async () => {
             setFirst(true);
             let record = await getData();
-
+            console.log(record);
             editDataFunctionality(
               record,
               myData,
@@ -124,6 +156,7 @@ const EditNote = () => {
             );
             setViewData(myData);
             record = await getOthersData();
+            console.log(record);
             editDataFunctionality(
               record,
               othersData,
@@ -297,14 +330,14 @@ function editDataFunctionality(
                   <DialogClose asChild>
                     <Button
                       type="submit"
-                      onClick={() => {
+                      onClick={async () => {
                         try {
-                          saveData(
+                          const savedRecord = await saveData(
                             record[i].id,
                             record[i].authorId,
                             checkBoxes[i]
                           );
-                          console.log(checkBoxes[i]);
+                          console.log(checkBoxes[i], savedRecord);
                           toast({
                             description: "Note updated.",
                           });
