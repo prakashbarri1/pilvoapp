@@ -9,6 +9,13 @@ import { Input } from "@/components/ui/input";
 import { useSession } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { PlusIcon } from "lucide-react";
 
 const Delta = Quill.import("delta");
 
@@ -29,9 +36,11 @@ const PlivoEditor = () => {
       console.log(quillRef.current.getSemanticHTML());
       console.log(publish);
       const notesrequest = {
-        id: session.session?.user.username,
+        id: session.session?.user.username || localStorage.getItem("name"),
         note: JSON.stringify(quillRef.current.getContents()),
-        email: session.session?.user.emailAddresses[0].emailAddress,
+        email:
+          session.session?.user.emailAddresses[0].emailAddress ||
+          localStorage.getItem("email"),
         title: value,
         desc: description,
         publish: publish,
@@ -44,17 +53,24 @@ const PlivoEditor = () => {
         },
         body: JSON.stringify(notesrequest),
       });
+      if (response.status == 200) {
+        const data = await response.json();
+        console.log(data);
 
-      const data = await response.json();
-      console.log(data);
-      // const response = await createNote(notesrequest);
-      // console.log(response);
-      setContent("");
-      setDescription("");
-      quillRef.current.setText("");
-      toast({
-        description: "Note created.",
-      });
+        setContent("");
+        setDescription("");
+        quillRef.current.setText("");
+        toast({
+          description: "Note created.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Uh oh! Something went wrong." + response.body,
+          description:
+            "There was a problem with your request. Please try again.",
+        });
+      }
     } catch (error) {
       toast({
         variant: "destructive",
@@ -117,29 +133,49 @@ const PlivoEditor = () => {
       </div>
 
       <div className="m-2">
-        <Checkbox
-          id="publish"
-          value={publish}
-          onCheckedChange={(e) => {
-            setPublish(e);
-          }}
-          className="border-2"
-        />
-        <Label htmlFor="publish" className="font-semibold">
-          {" "}
-          Publish
-        </Label>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Checkbox
+                  id="publish"
+                  value={publish}
+                  onCheckedChange={(e) => {
+                    setPublish(e);
+                  }}
+                  className="border-2"
+                />
+                <Label htmlFor="publish" className="font-semibold">
+                  {" "}
+                  Publish
+                </Label>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Published note can be viewed by everyone</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <div className="flex m-2">
-        <Button
-          onClick={() => {
-            saveNote();
-          }}
-          className="bg-lime-500 text-white font-semibold hover:bg-lime-400 rounded-full"
-        >
-          Create Note
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                onClick={() => {
+                  saveNote();
+                }}
+                className="bg-lime-500 text-white font-semibold hover:bg-lime-400 rounded-full"
+              >
+                Create<PlusIcon></PlusIcon>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Create Note</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   );

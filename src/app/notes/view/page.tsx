@@ -136,12 +136,12 @@ export default function ViewNotes() {
 
       <div>
         <Tabs defaultValue="mydata" className="border-2 rounded-xl p-1">
-          <TabsList>
+          <TabsList className="bg-teal-400 font-bold">
             <TabsTrigger value="mydata" className="text-white">
               My Notes
             </TabsTrigger>
             <TabsTrigger value="othersdata" className="text-white">
-              Other Notes
+              Others Notes
             </TabsTrigger>
           </TabsList>
           <TabsContent value="mydata">

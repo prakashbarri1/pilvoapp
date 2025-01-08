@@ -18,6 +18,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useSession } from "@clerk/nextjs";
@@ -32,6 +39,7 @@ import Quill from "quill";
 import "react-quill/dist/quill.snow.css";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { SaveIcon, EditIcon, DeleteIcon } from "lucide-react";
 
 const EditNote = () => {
   const session = useSession();
@@ -179,12 +187,12 @@ const EditNote = () => {
       <div>
         <div>
           <Tabs defaultValue="mydata" className="border-2 rounded-xl p-1">
-            <TabsList>
-              <TabsTrigger value="mydata" className="text-white">
+            <TabsList className="bg-teal-400 font-bold">
+              <TabsTrigger value="mydata" className="text-white ">
                 My Notes
               </TabsTrigger>
               <TabsTrigger value="othersdata" className="text-white">
-                Other Notes
+                Others Notes
               </TabsTrigger>
             </TabsList>
             <TabsContent value="mydata">
@@ -240,33 +248,54 @@ function editDataFunctionality(
           </CardContent>
           <CardFooter>
             <div className="grid grid-cols-2">
-              <Button
-                disabled={disabled}
-                className="bg-lime-500 rounded-full hover:bg-red-500 m-1"
-                onClick={async () => {
-                  try {
-                    await deleteData(record[i].id);
-                    editRef.current?.click();
-                    toast({
-                      description: "Note deleted.",
-                    });
-                  } catch (error) {
-                    toast({
-                      variant: "destructive",
-                      title: "Uh oh! Something went wrong." + error,
-                      description:
-                        "There was a problem with your request. Please try again.",
-                    });
-                  }
-                }}
-              >
-                Delete
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      disabled={disabled}
+                      className="bg-lime-500 rounded-full hover:bg-red-600 m-1"
+                      onClick={async () => {
+                        try {
+                          await deleteData(record[i].id);
+                          editRef.current?.click();
+                          toast({
+                            description: "Note deleted.",
+                          });
+                        } catch (error) {
+                          toast({
+                            variant: "destructive",
+                            title: "Uh oh! Something went wrong." + error,
+                            description:
+                              "There was a problem with your request. Please try again.",
+                          });
+                        }
+                      }}
+                    >
+                      Delete
+                      <DeleteIcon></DeleteIcon>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete Note</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-lime-500 rounded-full hover:bg-amber-500 m-1">
-                    Edit
-                  </Button>
+                  <div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button className="bg-lime-500 rounded-full hover:bg-amber-500 m-1">
+                            Edit <EditIcon></EditIcon>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit Note</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
@@ -315,16 +344,26 @@ function editDataFunctionality(
                       />
                     </div>
                     <div className="items-center gap-1">
-                      <Checkbox
-                        id="publish"
-                        // checked={checkBoxes[i]}
-                        className="border-2"
-                        value={checkBoxes[i]}
-                        onCheckedChange={(e) => {
-                          checkBoxes[i] = e;
-                        }}
-                      />
-                      <Label htmlFor="publish"> Publish</Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <Checkbox
+                                id="publish"
+                                className="border-2"
+                                value={checkBoxes[i]}
+                                onCheckedChange={(e) => {
+                                  checkBoxes[i] = e;
+                                }}
+                              />
+                              <Label htmlFor="publish"> Publish</Label>
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Published note will be visible to others</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                   <DialogClose asChild>
@@ -353,6 +392,7 @@ function editDataFunctionality(
                       }}
                     >
                       Save
+                      <SaveIcon></SaveIcon>
                     </Button>
                   </DialogClose>
                 </DialogContent>
