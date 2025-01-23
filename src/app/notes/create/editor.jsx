@@ -33,6 +33,9 @@ const PlivoEditor = () => {
 
   async function saveNote() {
     try {
+      if (!value || !description || !quillRef.current.getSemanticHTML()) {
+        throw Error("Please fill all the fields");
+      }
       console.log(quillRef.current.getSemanticHTML());
       console.log(publish);
       const notesrequest = {

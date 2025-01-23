@@ -41,7 +41,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tr from-teal-300 via-orange-300 to-amber-500 bg-repeat-space`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gradient-to-tr from-teal-300 via-orange-300 to-amber-500 bg-no-repeat`}
         >
           <div className="flex justify-center items-center">
             <SignedOut>
