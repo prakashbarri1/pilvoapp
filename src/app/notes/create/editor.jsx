@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { createNote } from "../../../../components/savenote";
 import { useSession } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 const Delta = Quill.import("delta");
 
@@ -17,15 +18,15 @@ const PlivoEditor = () => {
   const [, setLastChange] = useState();
   const [value, setContent] = useState("");
   const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
   const session = useSession();
   const { toast } = useToast();
 
-  // Use a ref to access the quill instance directly
   const quillRef = useRef(null);
 
   async function saveNote() {
     try {
-      console.log(quillRef.current.getSemanticHTML());
+      setSaving(true);
       const notesrequest = {
         id: session.session?.user.username,
         note: JSON.stringify(quillRef.current.getContents()),
@@ -34,8 +35,7 @@ const PlivoEditor = () => {
         desc: description,
         content: quillRef.current.getSemanticHTML(),
       };
-      const response = await createNote(notesrequest);
-      console.log(response);
+      await createNote(notesrequest);
       setContent("");
       setDescription("");
       quillRef.current.setText("");
@@ -45,68 +45,70 @@ const PlivoEditor = () => {
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Uh oh! Something went wrong." + error,
-        description: "There was a problem with your request. Please try again.",
+        title: "Uh oh! Something went wrong.",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
-    <div>
-      <div className="mx-2">
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight">Create Note</h1>
+        <p className="text-sm text-muted-foreground">
+          Write a new note using the editor below.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
         <Input
           id="title"
           type="text"
-          placeholder="Title"
+          placeholder="Enter a title..."
           value={value}
-          onChange={(e) => {
-            setContent(e.target.value);
-          }}
-          required={true}
-          className="border-2 p-1"
+          onChange={(e) => setContent(e.target.value)}
+          required
         />
       </div>
 
-      <div className="m-2">
+      <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
         <Input
           id="description"
           type="text"
-          placeholder="Description"
+          placeholder="Brief description..."
           value={description}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-          className="border-2 p-1"
+          onChange={(e) => setDescription(e.target.value)}
         />
       </div>
 
-      <div className="m-2">
+      <div className="space-y-2">
         <Label htmlFor="editor">Content</Label>
-        <Editor
-          id="editor"
-          className="flex border-indigo-400 rounded-xl border-2 text-indigo-400"
-          ref={quillRef}
-          readOnly={false}
-          defaultValue={new Delta()}
-          onSelectionChange={setRange}
-          onTextChange={setLastChange}
-          theme="snow"
-          placeholder="Type your notes..."
-        />
+        <div className="overflow-hidden rounded-lg border">
+          <Editor
+            id="editor"
+            ref={quillRef}
+            readOnly={false}
+            defaultValue={new Delta()}
+            onSelectionChange={setRange}
+            onTextChange={setLastChange}
+            theme="snow"
+            placeholder="Type your notes..."
+          />
+        </div>
       </div>
 
-      <div className="flex m-2">
-        <Button
-          onClick={() => {
-            saveNote();
-          }}
-          className="bg-lime-500 text-white font-semibold hover:bg-lime-400 rounded-full"
-        >
-          Create Note
-        </Button>
-      </div>
+      <Button
+        onClick={saveNote}
+        disabled={saving || !value.trim()}
+        className="w-full sm:w-auto"
+      >
+        {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {saving ? "Creating..." : "Create Note"}
+      </Button>
     </div>
   );
 };
