@@ -27,17 +27,17 @@ export default function ViewNotes() {
         items.push(
           <Card key={notes[i].id} className="overflow-hidden">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
+              <CardTitle className="break-words text-lg">
                 {notes[i].title || "Untitled"}
               </CardTitle>
               {notes[i].description && (
-                <CardDescription>{notes[i].description}</CardDescription>
+                <CardDescription className="break-words">{notes[i].description}</CardDescription>
               )}
             </CardHeader>
             {notes[i].html && (
               <CardContent>
                 <div
-                  className="text-sm leading-relaxed"
+                  className="break-words text-sm leading-relaxed"
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(notes[i].html),
                   }}

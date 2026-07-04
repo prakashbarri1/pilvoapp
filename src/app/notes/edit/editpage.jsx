@@ -52,20 +52,20 @@ const EditNote = () => {
           <CardHeader className="pb-3">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
-                <CardTitle className="text-lg">
+                <CardTitle className="break-words text-lg">
                   {r.title || "Untitled"}
                 </CardTitle>
                 {r.description && (
-                  <CardDescription>{r.description}</CardDescription>
+                  <CardDescription className="break-words">{r.description}</CardDescription>
                 )}
               </div>
             </div>
           </CardHeader>
           {r.html && (
             <CardContent>
-              <div
-                className="text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
+                <div
+                  className="break-words text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(r.html),
                 }}
               />
