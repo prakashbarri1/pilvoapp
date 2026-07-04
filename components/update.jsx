@@ -1,27 +1,35 @@
 "use server";
-import client from "./client";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "./client";
 
 export async function updateNote(data) {
-  const prismaClient = await client();
-  let record = await prismaClient.user.findUnique({
+  const { sessionClaims } = await auth();
+  const email = sessionClaims?.email;
+
+  if (!email) {
+    throw new Error("Unauthorized");
+  }
+
+  const existing = await prisma.note.findUnique({
+    where: { id: data.vid },
+  });
+
+  if (!existing) {
+    throw new Error("Note not found");
+  }
+
+  if (existing.authorId !== email) {
+    throw new Error("Forbidden");
+  }
+
+  const note = await prisma.note.update({
     where: {
-      name: data.id,
-      email: data.email,
+      id: data.vid,
+    },
+    data: {
+      content: data.note,
+      html: data.content,
     },
   });
-  if (record) {
-    let note = await prismaClient.note.update({
-      where: {
-        id: data.vid,
-      },
-      data: {
-        content: data.note,
-        html: data.content,
-      },
-    });
-    console.log("Note created:", note);
-    return note;
-  } else {
-    return null;
-  }
+  return note;
 }

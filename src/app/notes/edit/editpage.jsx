@@ -21,7 +21,6 @@ import {
 import { getNotes } from "../../../../components/notes";
 import { deleteNote } from "../../../../components/delete";
 import { updateNote } from "../../../../components/update";
-import { useSession } from "@clerk/nextjs";
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import DOMPurify from "dompurify";
@@ -36,48 +35,155 @@ import { Loader2, Trash2, Pencil, BookOpen } from "lucide-react";
 const Delta = Quill.import("delta");
 
 const EditNote = () => {
-  const session = useSession();
-  const editRef = useRef(null);
   const { toast } = useToast();
-  const [first, setFirst] = useState(false);
-  const [viewdata, setViewData] = useState(Array());
+  const [viewdata, setViewData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [, setRange] = useState();
   const [, setLastChange] = useState();
 
   const quillRef = useRef(null);
 
-  async function getData() {
-    const notes = await getNotes({
-      id: session.session?.user.emailAddresses[0].emailAddress,
-    });
-    return notes;
+  async function loadData() {
+    setLoading(true);
+    const record = await getNotes();
+    const data = record.map((r) => (
+      <Card key={r.id} className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <CardTitle className="text-lg">
+                {r.title || "Untitled"}
+              </CardTitle>
+              {r.description && (
+                <CardDescription>{r.description}</CardDescription>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        {r.html && (
+          <CardContent>
+            <div
+              className="text-sm leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(r.html),
+              }}
+            />
+          </CardContent>
+        )}
+        <CardFooter className="border-t bg-muted/30 px-6 py-3">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+              onClick={async () => {
+                try {
+                  await deleteNote({ id: r.id });
+                  await loadData();
+                  toast({ description: "Note deleted." });
+                } catch (error) {
+                  toast({
+                    variant: "destructive",
+                    title: "Uh oh! Something went wrong.",
+                    description:
+                      "There was a problem with your request. Please try again.",
+                  });
+                }
+              }}
+            >
+              <Trash2 className="mr-1 h-4 w-4" />
+              Delete
+            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="default" size="sm">
+                  <Pencil className="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Note</DialogTitle>
+                  <DialogDescription>
+                    Make changes to your note here. Click save when you are
+                    done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-title">Title</Label>
+                    <Input id="edit-title" value={r.title} disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-description">Description</Label>
+                    <Input id="edit-description" value={r.description} disabled />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit-content">Content</Label>
+                    <div className="overflow-hidden rounded-lg border">
+                      <Editor
+                        id="edit-content"
+                        ref={quillRef}
+                        readOnly={false}
+                        defaultValue={
+                          r.content
+                            ? new Delta(JSON.parse(r.content))
+                            : new Delta()
+                        }
+                        onSelectionChange={setRange}
+                        onTextChange={setLastChange}
+                        theme="snow"
+                        placeholder="Edit your notes..."
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+                  <DialogClose asChild>
+                    <Button
+                      onClick={async () => {
+                        try {
+                          const updateRecord = {
+                            vid: r.id,
+                            note: JSON.stringify(
+                              quillRef.current.getContents(),
+                            ),
+                            content:
+                              quillRef.current.getSemanticHTML(),
+                          };
+                          await updateNote(updateRecord);
+                          await loadData();
+                          toast({ description: "Note updated." });
+                        } catch (error) {
+                          toast({
+                            variant: "destructive",
+                            title: "Uh oh! Something went wrong.",
+                            description:
+                              "There was a problem with your request. Please try again.",
+                          });
+                        }
+                      }}
+                    >
+                      Save
+                    </Button>
+                  </DialogClose>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </CardFooter>
+      </Card>
+    ));
+    setViewData(data);
+    setLoading(false);
   }
 
   useEffect(() => {
-    if (!first) {
-      editRef.current?.click();
-    }
-  });
-
-  async function saveData(rid, mail) {
-    let updateRecord = {
-      vid: rid,
-      id: session.session?.user.username,
-      email: mail,
-      note: JSON.stringify(quillRef.current.getContents()),
-      content: quillRef.current.getSemanticHTML(),
-    };
-    const updatedNote = await updateNote(updateRecord);
-    return updatedNote;
-  }
-
-  async function deleteData(nid) {
-    const notes = await deleteNote({
-      id: nid,
-    });
-    return notes;
-  }
+    loadData();
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -86,169 +192,6 @@ const EditNote = () => {
         <p className="text-sm text-muted-foreground">
           Update or delete your existing notes.
         </p>
-      </div>
-
-      <div className="hidden">
-        <Button
-          ref={editRef}
-          onClick={async () => {
-            setLoading(true);
-            setFirst(true);
-            const record = await getData();
-            const data = [];
-            for (let i = 0; i < record.length; i++) {
-              data.push(
-                <Card key={record[i].id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg">
-                          {record[i].title || "Untitled"}
-                        </CardTitle>
-                        {record[i].description && (
-                          <CardDescription>
-                            {record[i].description}
-                          </CardDescription>
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {record[i].html && (
-                    <CardContent>
-                      <div
-                        className="text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(record[i].html),
-                        }}
-                      />
-                    </CardContent>
-                  )}
-                  <CardFooter className="border-t bg-muted/30 px-6 py-3">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                        onClick={async () => {
-                          try {
-                            await deleteData(record[i].id);
-                            editRef.current?.click();
-                            toast({
-                              description: "Note deleted.",
-                            });
-                          } catch (error) {
-                            toast({
-                              variant: "destructive",
-                              title: "Uh oh! Something went wrong.",
-                              description:
-                                "There was a problem with your request. Please try again.",
-                            });
-                          }
-                        }}
-                      >
-                        <Trash2 className="mr-1 h-4 w-4" />
-                        Delete
-                      </Button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="default" size="sm">
-                            <Pencil className="mr-1 h-4 w-4" />
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px]">
-                          <DialogHeader>
-                            <DialogTitle>Edit Note</DialogTitle>
-                            <DialogDescription>
-                              Make changes to your note here. Click save when
-                              you are done.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-title">Title</Label>
-                              <Input
-                                id="edit-title"
-                                value={record[i].title}
-                                disabled
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-description">
-                                Description
-                              </Label>
-                              <Input
-                                id="edit-description"
-                                value={record[i].description}
-                                disabled
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-content">Content</Label>
-                              <div className="overflow-hidden rounded-lg border">
-                                <Editor
-                                  id="edit-content"
-                                  ref={quillRef}
-                                  readOnly={false}
-                                  defaultValue={
-                                    record[i].content
-                                      ? new Delta(
-                                          JSON.parse(record[i].content),
-                                        )
-                                      : new Delta()
-                                  }
-                                  onSelectionChange={setRange}
-                                  onTextChange={setLastChange}
-                                  theme="snow"
-                                  placeholder="Edit your notes..."
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex justify-end gap-2">
-                            <DialogClose asChild>
-                              <Button variant="outline">Cancel</Button>
-                            </DialogClose>
-                            <DialogClose asChild>
-                              <Button
-                                onClick={async () => {
-                                  try {
-                                    await saveData(
-                                      record[i].id,
-                                      record[i].authorId,
-                                    );
-                                    toast({
-                                      description: "Note updated.",
-                                    });
-                                    editRef.current?.click();
-                                  } catch (error) {
-                                    toast({
-                                      variant: "destructive",
-                                      title:
-                                        "Uh oh! Something went wrong.",
-                                      description:
-                                        "There was a problem with your request. Please try again.",
-                                    });
-                                  }
-                                }}
-                              >
-                                Save
-                              </Button>
-                            </DialogClose>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </CardFooter>
-                </Card>,
-              );
-            }
-            setViewData(data);
-            setLoading(false);
-          }}
-        >
-          View Data
-        </Button>
       </div>
 
       {loading ? (

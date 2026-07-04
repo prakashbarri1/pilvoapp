@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { createNote } from "../../../../components/savenote";
-import { useSession } from "@clerk/nextjs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -19,7 +18,6 @@ const PlivoEditor = () => {
   const [value, setContent] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const session = useSession();
   const { toast } = useToast();
 
   const quillRef = useRef(null);
@@ -28,11 +26,9 @@ const PlivoEditor = () => {
     try {
       setSaving(true);
       const notesrequest = {
-        id: session.session?.user.username,
-        note: JSON.stringify(quillRef.current.getContents()),
-        email: session.session?.user.emailAddresses[0].emailAddress,
         title: value,
         desc: description,
+        note: JSON.stringify(quillRef.current.getContents()),
         content: quillRef.current.getSemanticHTML(),
       };
       await createNote(notesrequest);

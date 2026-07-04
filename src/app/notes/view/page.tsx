@@ -7,31 +7,53 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { getNotes } from "../../../../components/notes";
-import { useSession } from "@clerk/nextjs";
 import { useRef, useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import DOMPurify from "dompurify";
 import { Loader2, BookOpen } from "lucide-react";
 
 export default function ViewNotes() {
-  const session = useSession();
-  const viewRef = useRef<HTMLButtonElement>(null);
-  const [first, setFirst] = useState(false);
   const [viewdata, setViewData] = useState<React.ReactNode[]>([]);
   const [loading, setLoading] = useState(false);
+  const loaded = useRef(false);
 
-  async function getData() {
-    const notes = await getNotes({
-      id: session.session?.user.emailAddresses[0].emailAddress,
-    });
-    return notes;
+  async function loadData() {
+    setLoading(true);
+    const notes = await getNotes();
+    const items: React.ReactNode[] = [];
+    for (let i = 0; i < notes.length; i++) {
+      items.push(
+        <Card key={notes[i].id} className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">
+              {notes[i].title || "Untitled"}
+            </CardTitle>
+            {notes[i].description && (
+              <CardDescription>{notes[i].description}</CardDescription>
+            )}
+          </CardHeader>
+          {notes[i].html && (
+            <CardContent>
+              <div
+                className="text-sm leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(notes[i].html),
+                }}
+              />
+            </CardContent>
+          )}
+        </Card>,
+      );
+    }
+    setViewData(items);
+    setLoading(false);
   }
 
   useEffect(() => {
-    if (!first) {
-      viewRef.current?.click();
+    if (!loaded.current) {
+      loaded.current = true;
+      loadData();
     }
-  });
+  }, []);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -42,46 +64,6 @@ export default function ViewNotes() {
             Browse all your saved notes.
           </p>
         </div>
-        <Button
-          ref={viewRef}
-          variant="outline"
-          size="sm"
-          onClick={async () => {
-            setLoading(true);
-            setFirst(true);
-            const record = await getData();
-            const items: React.ReactNode[] = [];
-            for (let i = 0; i < record.length; i++) {
-              items.push(
-                <Card key={record[i].id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg">
-                      {record[i].title || "Untitled"}
-                    </CardTitle>
-                    {record[i].description && (
-                      <CardDescription>{record[i].description}</CardDescription>
-                    )}
-                  </CardHeader>
-                  {record[i].html && (
-                    <CardContent>
-                      <div
-                        className="text-sm leading-relaxed"
-                        dangerouslySetInnerHTML={{
-                          __html: DOMPurify.sanitize(record[i].html),
-                        }}
-                      />
-                    </CardContent>
-                  )}
-                </Card>,
-              );
-            }
-            setViewData(items);
-            setLoading(false);
-          }}
-          className="hidden"
-        >
-          Load Notes
-        </Button>
       </div>
 
       {loading ? (

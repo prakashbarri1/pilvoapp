@@ -1,12 +1,19 @@
 "use server";
-import client from "./client";
+import { auth } from "@clerk/nextjs/server";
+import prisma from "./client";
 
-export async function getNotes(data) {
-  const prismaClient = await client();
-  let note = await prismaClient.note.findMany({
+export async function getNotes() {
+  const { sessionClaims } = await auth();
+  const email = sessionClaims?.email;
+
+  if (!email) {
+    throw new Error("Unauthorized");
+  }
+
+  const notes = await prisma.note.findMany({
     where: {
-      authorId: data.id,
+      authorId: email,
     },
   });
-  return note;
+  return notes;
 }
