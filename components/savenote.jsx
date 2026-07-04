@@ -1,23 +1,26 @@
 "use server";
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import prisma from "./client";
 
 export async function createNote(data) {
-  const { sessionClaims } = await auth();
-  const email = sessionClaims?.email;
-
-  if (!email) {
+  const user = await currentUser();
+  if (!user) {
     throw new Error("Unauthorized");
   }
 
-  const name = sessionClaims?.name || email.split("@")[0];
+  const email = user.emailAddresses[0]?.emailAddress;
+  if (!email) {
+    throw new Error("No email on account");
+  }
 
-  let user = await prisma.user.findUnique({
+  const name = user.username || user.firstName || email.split("@")[0];
+
+  let dbUser = await prisma.user.findUnique({
     where: { email },
   });
 
-  if (!user) {
-    user = await prisma.user.create({
+  if (!dbUser) {
+    dbUser = await prisma.user.create({
       data: { name, email },
     });
   }

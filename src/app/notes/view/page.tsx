@@ -9,43 +9,55 @@ import {
 import { getNotes } from "../../../../components/notes";
 import { useRef, useState, useEffect } from "react";
 import DOMPurify from "dompurify";
+import { useToast } from "@/hooks/use-toast";
 import { Loader2, BookOpen } from "lucide-react";
 
 export default function ViewNotes() {
+  const { toast } = useToast();
   const [viewdata, setViewData] = useState<React.ReactNode[]>([]);
   const [loading, setLoading] = useState(false);
   const loaded = useRef(false);
 
   async function loadData() {
     setLoading(true);
-    const notes = await getNotes();
-    const items: React.ReactNode[] = [];
-    for (let i = 0; i < notes.length; i++) {
-      items.push(
-        <Card key={notes[i].id} className="overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">
-              {notes[i].title || "Untitled"}
-            </CardTitle>
-            {notes[i].description && (
-              <CardDescription>{notes[i].description}</CardDescription>
+    try {
+      const notes = await getNotes();
+      const items: React.ReactNode[] = [];
+      for (let i = 0; i < notes.length; i++) {
+        items.push(
+          <Card key={notes[i].id} className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">
+                {notes[i].title || "Untitled"}
+              </CardTitle>
+              {notes[i].description && (
+                <CardDescription>{notes[i].description}</CardDescription>
+              )}
+            </CardHeader>
+            {notes[i].html && (
+              <CardContent>
+                <div
+                  className="text-sm leading-relaxed"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(notes[i].html),
+                  }}
+                />
+              </CardContent>
             )}
-          </CardHeader>
-          {notes[i].html && (
-            <CardContent>
-              <div
-                className="text-sm leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(notes[i].html),
-                }}
-              />
-            </CardContent>
-          )}
-        </Card>,
-      );
+          </Card>,
+        );
+      }
+      setViewData(items);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to load notes",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
-    setViewData(items);
-    setLoading(false);
   }
 
   useEffect(() => {
